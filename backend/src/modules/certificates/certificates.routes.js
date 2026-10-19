@@ -1,12 +1,22 @@
 import { Router } from 'express'
 import authMiddleware from '../../middlewares/auth.middleware.js'
-import { devOrRole } from '../../middlewares/devOrRole.middleware.js'
+import { requireRole } from '../../middlewares/role.middleware.js'
+
 import {
-    getStatus, pay, downloadMembership,
-    downloadExcellence, paidMembersList
+    getStatus,
+    pay,
+    downloadMembership,
+    downloadExcellence,
+    paidMembersList,
+    collateStatus,
+    collate,
+    markCollateDone
 } from './certificates.controller.js'
 
+const COLLATE_ROLES = ['secretary']
+
 const router = Router()
+
 router.use(authMiddleware)
 
 // Member routes
@@ -15,9 +25,16 @@ router.post('/pay', pay)
 router.get('/download/membership', downloadMembership)
 router.get('/download/excellence', downloadExcellence)
 
-// Secretary/Exco — see all paid members and download for them
-router.get('/paid-members', devOrRole(
-    'secretary', 'president', 'vice_president', 'coordinator'
-), paidMembersList)
+// Secretary/Exco routes
+router.get('/paid-members', requireRole('secretary'), paidMembersList)
+
+// Certificate collation routes
+router.get('/collate-status', collateStatus)
+router.get('/collate', requireRole(...COLLATE_ROLES), collate)
+router.patch(
+    '/collate/:streamId/done',
+    requireRole(...COLLATE_ROLES),
+    markCollateDone
+)
 
 export default router
