@@ -16,5 +16,16 @@ export const getMyTopUps = async () => {
 }
 export const getMyTokenHistory = async () => {
     const response = await api.get('/tokens/history')
+    // Return array payload directly regardless of backend format wrapper
+    return response.data?.data || response.data
+}
+
+
+export const transferTokens = async (recipientStateCode, tokensToTransfer) => {
+    const response = await api.post('/tokens/transfer', {
+        recipientStateCode,
+        tokensToTransfer
+    })
     return response.data
 }
+
